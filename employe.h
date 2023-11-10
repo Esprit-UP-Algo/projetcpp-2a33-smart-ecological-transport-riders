@@ -31,6 +31,9 @@ public:
  QSqlQueryModel* afficher();
  bool supprimer(int);
  bool modifier();
+ QSqlQueryModel * rechercher(QString);
+ 
+ 
 private:
  int matricule;
 QString nom;
@@ -40,6 +43,7 @@ QString nom;
     QString sexe;
    QString adresse_email;
    int numero_de_telephone;
+   QString test;
 
 
 };
