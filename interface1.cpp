@@ -15,6 +15,17 @@ interface1::interface1(QWidget *parent) :
     ui->setupUi(this);
     ui->le_matricule->setValidator(new QIntValidator(0,999999,this));
     ui->tab_employe->setModel(E.afficher());
+    model = new QSqlQueryModel();
+       model->setQuery("SELECT * FROM employe");
+       ui->tab_employe->setModel(model);
+
+       ui->comboBoxTri->addItem("Par defaut");
+       ui->comboBoxTri->addItem("Croissant");
+       ui->comboBoxTri->addItem("Decroissant");
+
+       connect(ui->comboBoxTri, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &interface1::on_comboBoxTri_currentIndexChanged);
+
+
 }
 
 interface1::~interface1()
@@ -97,6 +108,36 @@ employe  E (matricule ,nom ,prenom ,numero_de_cin ,date_de_naissance,sexe ,adres
        QMessageBox::critical(nullptr, QObject::tr("not ok"),
                                 QObject::tr("modifier non effectué\n"
                                             "Click Cancel to exit."), QMessageBox::Cancel);
+}
+
+
+
+void interface1::on_lineEdit_rechercher_textChanged(const QString &arg1)
+{
+    employe E;
+                      QString NUMERO_DE_CIN=ui->lineEdit_rechercher->text();
+                     ui->tab_employe->setModel(E.rechercher(NUMERO_DE_CIN));
+                    ui->tab_employe->clearSelection();
+
+              if (arg1.isEmpty() && ui->lineEdit_rechercher->hasFocus() && !ui->lineEdit_rechercher->hasSelectedText()) {
+                  ui->lineEdit_rechercher->setToolTip("Entrez l'NUMERO_DE_CIN à rechercher");
+              }
+}
+
+void interface1::on_comboBoxTri_currentIndexChanged(int index)
+{
+    if (index == 0) // Reset
+        {
+           model->setQuery("SELECT * FROM employe");
+        }
+        else if (index == 1) // Croissant
+        {
+            model->setQuery("SELECT * FROM employe ORDER BY MATRICULE ASC");
+        }
+        else if (index == 2) // Décroissant
+           {
+               model->setQuery("SELECT * FROM employe ORDER BY MATRICULE DESC");
+           }
 }
 
 
