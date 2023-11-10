@@ -23,9 +23,16 @@ private slots:
 
     void on_pushButton_2_clicked();
 
+    void on_lineEdit_rechercher_textChanged(const QString &arg1);
+
+    void on_comboBoxTri_currentIndexChanged(int index);
+
+    void on_le_nom_textChanged(const QString &arg1);
+    
 private:
     Ui::interface1 *ui;
     employe E;
+    QSqlQueryModel *model;
 };
 
 #endif // INTERFACE1_H
