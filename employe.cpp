@@ -4,6 +4,7 @@
 #include <QObject>
 #include<QString>
 #include<QDate>
+#include<QSqlError>
 employe::employe()
 {
      matricule=0;numero_de_cin=0;date_de_naissance=0;numero_de_telephone=0;
@@ -110,3 +111,27 @@ bool employe::modifier(){
               return query.exec();
 
   }
+
+
+
+QSqlQueryModel* employe::rechercher(QString test)
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    QSqlQuery query;
+    query.prepare("SELECT * FROM EMPLOYE WHERE NUMERO_DE_CIN LIKE :test");
+    query.bindValue(":test", "%" + test + "%");
+    if (query.exec()) {
+        model->setQuery(query);
+        model->setHeaderData(0, Qt::Horizontal, QObject::tr("matricule"));
+        model->setHeaderData(1, Qt::Horizontal, QObject::tr("name"));
+        model->setHeaderData(2, Qt::Horizontal, QObject::tr("prenom"));
+        model->setHeaderData(3, Qt::Horizontal, QObject::tr("numero_de_cin"));
+        model->setHeaderData(4, Qt::Horizontal, QObject::tr("date_de_naissance"));
+        model->setHeaderData(5, Qt::Horizontal, QObject::tr("sexe"));
+        model->setHeaderData(6, Qt::Horizontal, QObject::tr("adresse_email"));
+        model->setHeaderData(7, Qt::Horizontal, QObject::tr("numero_de_telephone"));
+    } else {
+        qDebug() << "Erreur lors de l'exécution de la requête :" << query.lastError().text();
+    }
+    return model;
+}
