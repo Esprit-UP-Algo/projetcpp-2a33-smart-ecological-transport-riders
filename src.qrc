@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>p.png</file>
+        <file>p0.png</file>
+        <file>p1.png</file>
+        <file>False_icon.png</file>
+        <file>True_icon.png</file>
+    </qresource>
+</RCC>
