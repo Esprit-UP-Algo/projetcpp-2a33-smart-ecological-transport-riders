@@ -2,6 +2,7 @@
 #include "QSqlQuery"
 #include "QtDebug"
 #include "QObject"
+#include"arduino.h"
 voitures::voitures()
 {
     marque="";
@@ -43,6 +44,35 @@ bool voitures::ajouter()
 
     return query.exec();
 }
+int voitures::ardu(QString& a)
+{
+    QSqlQuery query;
+
+    // Prepare the SQL query
+    query.prepare("SELECT kilometrage FROM VOITURES WHERE plaque_dimmat = :plaque");
+      query.bindValue(":plaque", a);
+
+      // Execute the query
+      if (query.exec()) {
+          // Check if any rows were returned
+          if (query.next()) {
+              // Retrieve the value of the "vo" attribute
+              int v = query.value(0).toInt();
+              return v;
+          } else {
+              // No matching entry found
+              qDebug() << "No entry with plaque found in the calde table.";
+          }
+      } else {
+          // Query execution failed
+          qDebug() << "Query failed:" ;
+      }
+
+      // Return a default value or an indicator for no match
+      return -1;
+
+}
+
 QSqlQueryModel* voitures::afficher()
 {
     QSqlQueryModel* model=new QSqlQueryModel();

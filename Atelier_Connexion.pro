@@ -3,9 +3,16 @@
 # Project created by QtCreator 2018-10-26T21:45:23
 #
 #-------------------------------------------------
-
+include(QZXing/QZXing.pri)
+CONFIG += staticlib
+CONFIG += qzxing_qml
+CONFIG += qzxing_multimedia
 QT       += core gui sql
 QT       += charts
+QT       += serialport
+QT       += serialbus
+
+
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -26,14 +33,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    arduino.cpp \
         main.cpp \
         mainwindow.cpp \
     connection.cpp \
+    style.cpp \
     voitures.cpp
 
 HEADERS += \
+    arduino.h \
         mainwindow.h \
     connection.h \
+    style.h \
     voitures.h
 
 FORMS += \

@@ -3,7 +3,10 @@
 #include "voitures.h"
 #include <QMainWindow>
 #include <QMessageBox>
-
+#include <QSystemTrayIcon>
+#include <QDialogButtonBox>
+#include "arduino.h"
+#include <QZXing.h>
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -15,6 +18,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void onQRCodeScanned(const QString& data);
 
 private slots:
 
@@ -36,8 +40,16 @@ private slots:
 
     void on_pushButton_8_clicked();
 
+    void on_OK_clicked();
+
+    void on_pushButton_9_clicked();
+
+    void on_ajouter_clicked();
+
 private:
     Ui::MainWindow *Ui;
+    QByteArray data;
+    Arduino A;
     voitures etmp;
 };
 

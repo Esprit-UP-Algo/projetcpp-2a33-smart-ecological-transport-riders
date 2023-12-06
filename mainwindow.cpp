@@ -12,6 +12,22 @@
 #include <QtCharts>
 #include <QChartView>
 #include <QSqlRecord>
+#include "arduino.h"
+#include <QtCharts>
+#include<QChartView>
+#include<QBarSet>
+#include<QBarSeries>
+#include "QDate"
+#include <QFileDialog>
+#include <QTimer>
+#include <QMessageBox>
+#include <QSystemTrayIcon>
+#include <QDialogButtonBox>
+
+
+
+
+
 
 MainWindow::MainWindow(QWidget *parent)
    : QMainWindow(parent)
@@ -56,7 +72,7 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_pushButton_3_clicked()
 {
-    {
+
         voitures v;
         QString plaque_dimmat=Ui->lineEdit_8->text();
         bool test=etmp.supprimer(plaque_dimmat);
@@ -72,7 +88,7 @@ void MainWindow::on_pushButton_3_clicked()
                                  QObject::tr("Erreur !.\n"
                                              "Click Cancel to exit."), QMessageBox::Cancel);}
                  Ui->affichertab->setModel(etmp.afficher());
-    }
+
 
 }
 
@@ -244,6 +260,43 @@ void MainWindow::on_pushButton_7_clicked()
 }
 
 void MainWindow::on_pushButton_8_clicked()
+{
+
+
+}
+
+
+
+void MainWindow::on_pushButton_9_clicked()
+{
+voitures v;    //ardu
+int kilometrage;
+
+QString plaque_dimmat=Ui->lineEditPlaqueImmatriculation->text();
+kilometrage=v.ardu(plaque_dimmat);
+ QString stringValue = QString::number(kilometrage);
+ Ui->aff->setText("kilometrage : " + stringValue);
+ if(kilometrage<=50000)
+ {
+
+     A.write_to_arduino("1");
+ }
+ else
+ {
+
+     A.write_to_arduino("2");
+ }
+
+}
+
+void MainWindow::on_OK_clicked()
+{
+
+
+}
+
+
+void MainWindow::on_ajouter_clicked()
 {
 
 }

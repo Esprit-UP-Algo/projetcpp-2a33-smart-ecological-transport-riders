@@ -3,7 +3,10 @@
 #include<QString>
 #include<QSqlQuery>
 #include<QSqlQueryModel>
-
+#include <QPdfWriter>
+#include <QPainter>
+#include <QImage>
+#include "arduino.h"
 class voitures
 {
 private:
@@ -42,6 +45,8 @@ public:
     QSqlQueryModel* tri_annee();
     QSqlQueryModel* tri_tarifs();
     QSqlQueryModel* recherche(QString,QString);
+    int ardu(QString &a);
+    QImage generateQRCode();
 
 };
 
