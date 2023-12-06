@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
     Connection c;
 //mainwindow w;
 
+
     bool test=c.createconnect();
 
     interface1 i;

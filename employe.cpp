@@ -165,3 +165,16 @@ QSqlQueryModel* employe::rechercher(QString test, bool searchByNom, bool searchB
 
     return model;
 }
+QString employe::getNomByMatricule(int matricule)
+{
+    QSqlQuery query;
+    query.prepare("SELECT NOM FROM EMPLOYE WHERE MATRICULE = :matricule");
+    query.bindValue(":matricule", matricule);
+
+    if (query.exec() && query.next()) {
+        return query.value(0).toString();
+    }
+
+    // Handle errors if needed
+    return QString(); // Return an empty string if matricule is not found
+}

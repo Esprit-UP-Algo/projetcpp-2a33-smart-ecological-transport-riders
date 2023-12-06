@@ -38,6 +38,7 @@ QDate getdate();
  bool supprimer(int);
  bool modifier();
  QSqlQueryModel* rechercher(QString test, bool searchByNom, bool searchByMatricule);
+ QString getNomByMatricule(int matricule);
 
 
 private:

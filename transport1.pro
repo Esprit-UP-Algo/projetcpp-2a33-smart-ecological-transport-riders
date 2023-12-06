@@ -5,6 +5,9 @@ TEMPLATE = app
 QT   += core gui charts
 QT   += core gui charts
 QT       += core gui  serialport
+QT += network
+
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Atelier_Arduino_v2
 TEMPLATE = app
@@ -30,7 +33,11 @@ SOURCES += \
     excel.cpp \
     main.cpp \
     interface1.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    smtp.cpp \
+    syle.cpp \
+    voitures.cpp
+
 
 HEADERS += \
     arduino.h \
@@ -39,7 +46,10 @@ HEADERS += \
     employe.h \
     excel.h \
     interface1.h \
-    mainwindow.h
+    mainwindow.h \
+    smtp.h \
+    syle.h \
+    voitures.h
 
 FORMS += \
     interface1.ui \

@@ -1,10 +1,12 @@
-
+#include "syle.h"
 #include "interface1.h"
 #include "ui_interface1.h"
 #include <QMainWindow>
 #include "mainwindow.h"
 #include "client.h"
-
+#include "smtp.h"
+#include<QSslSocket>
+#include<QSqlRecord>
 #include "employe.h"
 #include <QString>
 #include <QIntValidator>
@@ -28,7 +30,7 @@
 #include<QBarSet>
 #include<QBarSeries>// Add this line for QPieSeries
 //#include <QPrinter>
-
+#include"voitures.h"
 #include<QtCharts/QChart>
 #include<QtCharts/QChartView>
 #include<QtCharts/QValueAxis>
@@ -48,16 +50,35 @@
 #include <QtCharts/QBarCategoryAxis>
 #include<QPieSeries>
 #include <QTabWidget>
+#include <QtNetwork>
 
-
+#include "arduino.h"
+#include <QTimer>
+#include <QMessageBox>
 interface1::interface1(QWidget *parent):
      QMainWindow(parent),
      ui(new Ui::interface1)
 {
     ui->setupUi(this);
+     applyStyles(ui);
+     serial = new QSerialPort(this);
+    int ret=myArduino.connect_arduino(); // lancer la connexion à arduino
+    switch(ret){
+    case(0):qDebug()<< "arduino is available and connected to : "<< myArduino.getarduino_port_name();
+        break;
+    case(1):qDebug() << "arduino is available but not connected to :" <<myArduino.getarduino_port_name();
+       break;
+    case(-1):qDebug() << "arduino is not available";
+    }
+   //  QObject::connect(myArduino.getserial(),SIGNAL(readyRead()),this,SLOT(update_label())); // permet de lancer
+     //le slot update_label suite à la reception du signal readyRead (reception des données).
+     timer = new QTimer(this);
+     connect(timer, &QTimer::timeout, this, &interface1::loop);
+     timer->start(5000);  // Démarrer le temporisa
+
     ui->le_matricule->setValidator(new QIntValidator(0,999999,this));
     ui->tab_employe->setModel(E.afficher());
-    ui->stackedWidget->setCurrentIndex(2);
+    ui->stackedWidget->setCurrentIndex(3);
     model = new QSqlQueryModel();
        model->setQuery("SELECT * FROM employe");
        ui->tab_employe->setModel(model);
@@ -137,6 +158,9 @@ ui->lineEdit_numpermis->setValidator(new QIntValidator(0,999999999,this));
 ui->lineEdit_numtel->setValidator(new QIntValidator(0,999999999,this));
 ui->cinToModifyLineEdit->setValidator(new QIntValidator(0,999999999,this));
 ui->tableView->setModel(etmp.afficher());
+qputenv("OPENSSL_CONF", "/z/extlib/_openssl_/ssl/openssl.cnf");
+//sarah
+ui->affichertab->setModel(etm.afficher());
 
 
 
@@ -220,7 +244,7 @@ else
  {
      ui->label_telephoneControl->setPixmap(PixTrueIcon);
  }
- if (ui->label_pass->text().contains(QRegExp("[^0-9]") ) || ui->label_pass->text().isEmpty())
+ if (ui->lineEditpass->text().contains(QRegExp("[^0-9]") ) || ui->lineEditpass->text().isEmpty())
  {
      ui->label_21->setPixmap(PixFalseIcon);
  }
@@ -239,7 +263,7 @@ else
      QString adresse_email = ui->le_adresse_email->text();
      QString sexe = ui->le_sexe->text();
      int numero_de_telephone = ui->le_numero_de_telephone->text().toInt();
-int pass = ui->label_pass->text().toInt();
+int pass = ui->lineEditpass->text().toInt();
 QDate date= ui->date->date();
 
      employe  E (matricule ,nom ,prenom ,numero_de_cin ,date_de_naissance ,adresse_email,sexe ,numero_de_telephone, pass,date);
@@ -566,11 +590,11 @@ void interface1::on_pushButton_5_clicked()
         query.prepare("SELECT * FROM EMPLOYE WHERE MATRICULE = :matricule AND PASS = :password");
         query.bindValue(":matricule", matricule);
         query.bindValue(":password", Password);
-
+ //ui->stackedWidget->setCurrentIndex(4);
         if (query.exec() && query.next()) {
             QMessageBox::information(this, "CONNECTED", "Connecté");
-           // ui->stackedWidget->setCurrentIndex(0);
-             ui->stackedWidget->setCurrentIndex(3);
+
+             ui->stackedWidget->setCurrentIndex(4);
 
 
         } else {
@@ -656,6 +680,12 @@ void interface1::on_pushButton_10_clicked()
     QString adresseemail=ui->lineEdit_ADRESSEEMAIL->text();
     int numtel=ui->lineEdit_NUMTEL->text().toInt();
     int numcin=ui->lineEdit_NUMCIN->text().toInt();
+    if (!isValidEmail(adresseemail)) {
+               QMessageBox::critical(nullptr, QObject::tr("Invalid Input"),
+                                     QObject::tr("Please enter a valid email address."),
+                                     QMessageBox::Cancel);
+               return;
+           }
     client x(nom,prenom,numpermis,naissance,adresse,adresseemail,numtel,numcin);
     bool test=x.ajouter();
      if(test){
@@ -740,12 +770,12 @@ void interface1::on_pushButton_14_clicked()
 
 void interface1::on_pushButton_9_clicked()
 {
-    ui->stackedWidget->setCurrentIndex(1);
+    ui->stackedWidget->setCurrentIndex(0);
 }
 
 void interface1::on_pushButton_qu_clicked()
 {
-    ui->stackedWidget->setCurrentIndex(3);
+    ui->stackedWidget->setCurrentIndex(4);
 
 }
 
@@ -895,4 +925,509 @@ void interface1::on_pushButton_17_clicked()
 void interface1::on_pushButton_18_clicked()
 {
      ui->stackedWidget->setCurrentIndex(2);
+}
+
+void interface1::on_calendarWidget_selectionChanged()
+{
+    static QDate firstDate;
+
+        if (firstDate.isNull()) {
+            // C'est la première date sélectionnée
+            firstDate = ui->calendarWidget->selectedDate();
+        } else {
+            // C'est la deuxième date sélectionnée
+            QDate secondDate = ui->calendarWidget->selectedDate();
+
+            // Calculez la différence entre les deux dates
+            int daysDifference = firstDate.daysTo(secondDate);
+
+            // Vérifiez si la différence est inférieure ou égale à 21
+            if (daysDifference <= 21) {
+                QMessageBox::information(this, "Congé", "Congé disponible");
+            } else {
+                QMessageBox::information(this, "Congé", "Congé pas possible");
+            }
+
+            // Réinitialisez firstDate pour la prochaine paire de sélections
+            firstDate = QDate();
+
+            // Désactivez le QCalendarWidget
+            ui->calendarWidget->setEnabled(false);
+        }
+}
+void interface1::sendMail()
+{
+    qDebug() << "Sending email...";
+
+        // Get the user input from the line edits
+        QString clientEmail = ui->lineEdit_ADRESSEEMAIL->text();
+        QString message = ui->lineEdit_3->text();
+
+
+        // Validate the email address
+        if (!isValidEmail(clientEmail)) {
+            qDebug() << "Invalid email address";
+            QMessageBox::critical(this, "Error", "Invalid email address");
+            return;
+        }
+
+        // Create an instance of the smtp class with your email credentials
+        smtpClient = new smtp("chams.nasr@esprit.tn", "221JMT8002", "smtp.esprit.tn", 578);
+
+        qDebug() << "Email content:";
+        qDebug() << "To: " << clientEmail;
+        qDebug() << "Subject: Subject";
+        qDebug() << "Body: " << message;
+
+        // Send the email
+        smtpClient->sendMail("chams.nasr@esprit.tn", clientEmail, "Subject", message);
+
+        // Check for successful email sending
+        if (smtpClient->getSocketState() == QAbstractSocket::ConnectedState) {
+            qDebug() << "le message est envoyé!";
+
+            // Additional debugging information
+            qDebug() << "Socket state:" << smtpClient->getSocketState();
+            qDebug() << "Socket error string:" << smtpClient->getSocketErrorString();
+            qDebug() << "SMTP server response:" << smtpClient->getServerResponse();
+
+            QMessageBox::information(this, "Email Sent", "le message est envoyé!");
+        } else {
+            qDebug() << "Error sending email:" << smtpClient->getSocketErrorString();
+
+            // Additional debugging information
+            qDebug() << "Socket state:" << smtpClient->getSocketState();
+            qDebug() << "Socket error string:" << smtpClient->getSocketErrorString();
+            qDebug() << "SMTP server response:" << smtpClient->getServerResponse();
+
+            QMessageBox::warning(this, "Error", "Error sending email. Check the console for details.");
+        }
+
+        // Cleanup
+        delete smtpClient;
+}
+
+void interface1::on_pushButton_19_clicked()
+{
+    QString message = ui->lineEdit_3->text();
+            int numcin = ui->lineEditcl->text().toInt();
+
+            // Retrieve the client's email address using the numcin
+            client x;
+            QSqlQueryModel *resultModel = x.rechercher(numcin);
+
+            if (resultModel && resultModel->rowCount() > 0) {
+                QString clientEmail = resultModel->record(0).value("ADRESSEEMAIL").toString();
+
+                // Validate the email address
+                if (isValidEmail(clientEmail)) {
+                    // Send the email
+                    smtp *smtpClient = new smtp("chams.nasr@esprit.tn", "221JMT8002", "smtp.esprit.tn", 578);
+                    smtpClient->sendMail("chams.nasr@esprit.tn", clientEmail, "Subject", message);
+
+                    QMessageBox::information(this, "Email Sent", "The email has been sent successfully!");
+
+                    // Cleanup
+                    delete smtpClient;
+                } else {
+                    QMessageBox::critical(this, "Error", "Invalid email address");
+                }
+            } else {
+                QMessageBox::warning(this, "Error", "Client not found or email address not available.");
+            }
+}
+bool interface1::isValidEmail(const QString &email)
+{
+    // Simple email validation using a regular expression
+        QRegExp emailRegex("\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b");
+        return emailRegex.exactMatch(email);
+}
+
+/*void interface1::readDataFromArduino()
+{
+    QByteArray data = myArduino.read_from_arduino();
+
+}*/
+/*void interface1::readDataFromArduino()
+{
+    QByteArray data = myArduino.read_from_arduino();
+
+    // Convertir les données reçues en int (matricule)
+    int matricule = data.toInt();
+
+    // Exécuter la requête SQL pour obtenir le nom correspondant au matricule
+    QSqlQuery query;
+    query.prepare("SELECT NOM FROM EMPLOYE WHERE MATRICULE = :matricule");
+    query.bindValue(":matricule", matricule);
+
+    if (query.exec() && query.next()) {
+        // La requête a réussi, et nous avons une correspondance
+        QString nom = query.value(1).toString();
+
+        // Envoyer le nom à l'Arduino
+        QByteArray response = nom.toUtf8();
+        int writeResult = myArduino.write_to_arduino(response);
+
+        if (writeResult == 1) {
+            qDebug() << "Nom envoyé à l'Arduino avec succès : " << nom;
+            QMessageBox::critical(nullptr, QObject::tr("Not OK"),
+                                              QObject::tr("Nom envoyé à l'Arduino avec succès"
+                                                          "click cancel to exit"),QMessageBox::Cancel);
+        } else {
+            qDebug() << "Échec de l'envoi du nom à l'Arduino.";
+        }
+    } else {
+        // Aucune correspondance trouvée, envoyer une réponse vide à l'Arduino
+        QByteArray emptyResponse;
+        int writeResult = myArduino.write_to_arduino(emptyResponse);
+
+        if (writeResult == 1) {
+            qDebug() << "Aucune correspondance trouvée, réponse vide envoyée à l'Arduino.";
+        } else {
+            qDebug() << "Échec de l'envoi de la réponse vide à l'Arduino.";
+        }
+    }
+}*/
+
+
+/*void interface1::on_pushButton_arduino_clicked()
+{
+    QByteArray data = myArduino.read_from_arduino();
+    // Convertir les données reçues en int (matricule)
+    int matricule = data.toInt();
+
+    // Exécuter la requête SQL pour obtenir le nom correspondant au matricule
+    QSqlQuery query;
+    query.prepare("SELECT NOM FROM EMPLOYE WHERE MATRICULE = :matricule");
+    query.bindValue(":matricule", matricule);
+
+    if (query.exec() && query.next()) {
+        // La requête a réussi, et nous avons une correspondance
+        QString nom = query.value(1).toString();
+
+        // Envoyer le nom à l'Arduino
+        QByteArray response = nom.toUtf8();
+        int writeResult = myArduino.write_to_arduino(response);
+
+        if (writeResult == 1) {
+            qDebug() << "Nom envoyé à l'Arduino avec succès : " << nom;
+            QMessageBox::critical(nullptr, QObject::tr("Not OK"),
+                                              QObject::tr("Nom envoyé à l'Arduino avec succès"
+                                                          "click cancel to exit"),QMessageBox::Cancel);
+        } else {
+            qDebug() << "Échec de l'envoi du nom à l'Arduino.";
+        }
+    } else {
+        // Aucune correspondance trouvée, envoyer une réponse vide à l'Arduino
+        QByteArray emptyResponse;
+        int writeResult = myArduino.write_to_arduino(emptyResponse);
+
+        if (writeResult == 1) {
+            qDebug() << "Aucune correspondance trouvée, réponse vide envoyée à l'Arduino.";
+        } else {
+            qDebug() << "Échec de l'envoi de la réponse vide à l'Arduino.";
+        }
+    }
+
+}*/
+void interface1::loop() {
+    QByteArray data = myArduino.read_from_arduino();
+
+    // Nettoyer les caractères spéciaux "\r\n" de la chaîne
+    data = data.trimmed();
+
+    // Convertir les données nettoyées en int (matricule)
+    bool conversionOk;
+    int UID = data.toInt(&conversionOk);
+
+    if (conversionOk) {
+        qDebug() << "Matricule Arduino converti avec succès : " << UID;
+
+        // Exécuter la requête SQL pour vérifier si le matricule existe dans la table EMPLOYE
+        QSqlQuery checkQuery;
+        checkQuery.prepare("SELECT NOM FROM EMPLOYE WHERE MATRICULE = :UID");
+        checkQuery.bindValue(":UID", UID);
+
+        if (checkQuery.exec() && checkQuery.next()) {
+            // La correspondance a été trouvée, récupérer le nom correspondant
+            QString nom = checkQuery.value(0).toString();
+
+            // Envoyer le nom à l'Arduino
+            QByteArray response = nom.toUtf8();
+            int writeResult = myArduino.write_to_arduino(response);
+
+            if (writeResult == 1) {
+                qDebug() << "Matricule trouvé, nom envoyé à l'Arduino : " << nom;
+
+                QMessageBox::information(nullptr, QObject::tr("OK"),
+                                         QObject::tr("Matricule trouvé, nom envoyé à l'Arduino."
+                                                     "Cliquez sur Annuler pour quitter."), QMessageBox::Cancel);
+            } else {
+                qDebug() << "Échec de l'envoi du nom à l'Arduino.";
+            }
+        } else {
+            // Aucune correspondance trouvée, envoyer une réponse vide à l'Arduino
+            QByteArray emptyResponse = "0";
+            int writeResult = myArduino.write_to_arduino(emptyResponse);
+
+            if (writeResult == 1) {
+                qDebug() << "Aucune correspondance trouvée, réponse vide envoyée à l'Arduino.";
+            } else {
+                qDebug() << "Échec de l'envoi de la réponse vide à l'Arduino.";
+            }
+        }
+    } else {
+        // La conversion en int a échoué
+        qDebug() << "Échec de la conversion du matricule Arduino en entier.";
+        // Traitez ce cas en conséquence (par exemple, affichez un message d'erreur)
+    }
+}
+
+void interface1::on_pushButton_21_clicked()
+{
+       ui->stackedWidget->setCurrentIndex(1);
+       ui->pushButton_22->show();
+}
+//sarah
+
+void interface1::on_ajouter_vo_clicked()
+{
+    QString marque=ui->le_marque->text();
+    QString modele=ui->le_modele->text();
+    int afb=ui->le_afb->text().toInt();
+    QString plaque_dimmat=ui->le_plaque_dimmat->text();
+    int kilometrage=ui->le_kilometrage->text().toInt();
+    QString etat=ui->le_etat->text();
+    int tarifsloca=ui->le_tarifs->text().toInt();
+
+
+
+
+    voitures v(marque,modele,afb,plaque_dimmat,kilometrage,etat,tarifsloca);
+    bool test=v.ajouter();
+    if(test)
+    {
+        QMessageBox::information(nullptr, QObject::tr("ajouter"),
+                    QObject::tr("ajouter successful.\n"
+                                "Click Cancel to exit."), QMessageBox::Cancel);
+
+    }
+    else
+       { QMessageBox::critical(nullptr, QObject::tr("ajouter"),
+                    QObject::tr("ajouter failed.\n"
+                                "Click Cancel to exit."), QMessageBox::Cancel);}
+      ui->affichertab->setModel(etmp.afficher());
+}
+
+void interface1::on_supp_sara_clicked()
+{
+    voitures v;
+    QString plaque_dimmat=ui->lineEdit_8->text();
+    bool test=etm.supprimer(plaque_dimmat);
+             if(test)
+             {
+               QMessageBox::information(nullptr, QObject::tr("Supprimer"),
+                             QObject::tr(" supprimé.\n"
+                                         "Click Cancel to exit."), QMessageBox::Cancel);
+
+             }
+             else
+             {QMessageBox::critical(nullptr, QObject::tr("supprimer"),
+                             QObject::tr("Erreur !.\n"
+                                         "Click Cancel to exit."), QMessageBox::Cancel);}
+             ui->affichertab->setModel(etm.afficher());
+
+}
+
+void interface1::on_modifier_2_clicked()
+{
+    QString marque=ui->le_marque->text();
+      QString modele=ui->le_modele->text();
+      int afb=ui->le_afb->text().toInt();
+      QString plaque_dimmat=ui->le_plaque_dimmat->text();
+      int kilometrage=ui->le_kilometrage->text().toInt();
+      QString etat=ui->le_etat->text();
+      int tarifsloca=ui->le_tarifs->text().toInt();
+
+
+
+
+      voitures v (marque,modele,afb,plaque_dimmat,kilometrage,etat,tarifsloca);
+      bool test=v.modifier(marque,modele,afb,plaque_dimmat,kilometrage,etat,tarifsloca);
+      if(test)
+      {
+          QMessageBox::information(nullptr, QObject::tr("modifier"),
+                      QObject::tr("modifier successful.\n"
+                                  "Click Cancel to exit."), QMessageBox::Cancel);
+
+      }
+      else
+         { QMessageBox::critical(nullptr, QObject::tr("modifier"),
+                      QObject::tr("modifier failed.\n"
+                                  "Click Cancel to exit."), QMessageBox::Cancel);}
+        ui->affichertab->setModel(etm.afficher());
+}
+
+void interface1::on_pushButton_trianne_clicked()
+{
+
+   ui->tab_tri->setModel(etm.tri_annee());
+}
+
+
+
+void interface1::on_chercher_clicked()
+{
+    ui->affichertab->setModel(etm.recherche(ui->cherche->text(),ui->cherche->text()));
+}
+
+
+
+
+
+void interface1::on_stat_clicked()
+{
+
+
+}
+
+void interface1::on_chercher_sara_clicked()
+{
+    ui->affichertab->setModel(etm.recherche(ui->cherche->text(),ui->cherche->text()));
+}
+
+void interface1::on_stat_sarah_clicked()
+{
+    QSqlQueryModel*model=new QSqlQueryModel();
+        model->setQuery("SELECT etat FROM VOITURES ");
+
+    int countdispo = 0;
+    int countindispo = 0;
+
+    for (int i = 0; i < model->rowCount(); i++) {
+        QString status_a = model->record(i).value("etat").toString();
+
+        if (status_a == "dispo") {
+            countdispo++;
+        } else if (status_a == "indispo") {
+            countindispo++;
+        }
+}
+    int total = countdispo + countindispo ;
+
+       QPieSeries *series = new QPieSeries();
+       series->append("dispo", countdispo);
+       series->append("indispo", countindispo);
+
+       if (countdispo != 0) {
+           QPieSlice *slice = series->slices().at(0);
+           slice->setLabel("dispo" + QString("%1%").arg(100*slice->percentage(),3,'f',1));
+           slice->setLabelVisible();
+           slice->setPen(QPen(Qt::cyan));
+       }
+
+       if (countindispo != 0) {
+           QPieSlice *slice1 = series->slices().at(1);
+           slice1->setLabel("indispo" + QString("%1%").arg(100*slice1->percentage(),3,'f',1));
+           slice1->setLabelVisible();
+           slice1->setBrush(QColor(Qt::red));
+       }
+
+       QChart *chart = new QChart();
+       chart->addSeries(series);
+       chart->setTitle("Total " + QString::number(total));
+
+       QChartView *chartView = new QChartView(chart);
+       chartView->setRenderHint(QPainter::Antialiasing);
+       chartView->resize(1000, 500);
+
+       chart->legend()->hide();
+       chartView->show();
+}
+
+void interface1::on_tarifs_clicked()
+{
+    ui->affichertab->setModel(etm.tri_tarifs());
+}
+
+void interface1::on_pushButton_trianne_2_clicked()
+{
+
+    ui->affichertab->setModel(etm.tri_annee());
+}
+
+void interface1::on_pdf_sara_clicked()
+{
+    QPdfWriter pdf("C:/projet_pdf/pdf");
+    int i = 4000;
+    QPainter painter(&pdf);
+    QString strStream;
+
+    QTextStream out(&strStream);
+    painter.setPen(Qt::red);
+    painter.setFont(QFont("Time New Roman", 25));
+    painter.drawText(3000,1400,"Liste Des Voitures");
+    painter.setPen(Qt::black);
+    painter.setFont(QFont("Time New Roman", 7));
+    painter.setPen(Qt::darkCyan);
+    painter.drawRect(100,100,9400,2500);
+    painter.drawRect(100,3000,9400,500);
+    painter.setPen(Qt::black);
+    painter.drawText(300,3300," marque");
+    painter.drawText(1300,3300,"modele");
+    painter.drawText(2300,3300,"afb");
+    painter.drawText(3300,3300,"plaque_dimmat");
+    painter.drawText(4300,3300,"kilometrage");
+    painter.drawText(5300,3300,"etat");
+    painter.drawText(6300,3300,"tarifsloca");
+    painter.setPen(Qt::darkCyan);
+    painter.drawRect(100,3000,9400,9000);
+    painter.setPen(Qt::black);
+    QSqlQuery query;
+    query.prepare("select * from VOITURES");
+    query.exec();
+    while (query.next())
+    {
+        painter.drawText(300,i,query.value(0).toString());
+        painter.drawText(1300,i,query.value(1).toString());
+        painter.drawText(2300,i,query.value(2).toString());
+        painter.drawText(3300,i,query.value(3).toString());
+        painter.drawText(4300,i,query.value(4).toString());
+        painter.drawText(5300,i,query.value(5).toString());
+        painter.drawText(6300,i,query.value(6).toString());
+        i +=350;
+    }
+        QMessageBox::information(this, QObject::tr("PDF Enregistré!"),
+        QObject::tr("PDF Enregistré!.\n" "Click Cancel to exit."), QMessageBox::Cancel);
+
+
+}
+
+
+void interface1::on_kilometrage_clicked()
+{
+    voitures v;    //ardu
+    int kilometrage;
+
+    QString plaque_dimmat=ui->lineEditPlaqueImmatriculation->text();
+    kilometrage=v.ardu(plaque_dimmat);
+     QString stringValue = QString::number(kilometrage);
+     ui->aff->setText("kilometrage : " + stringValue);
+     if(kilometrage<=50000)
+     {
+
+         myArduino.write_to_arduino("1");
+     }
+     else
+     {
+
+         myArduino.write_to_arduino("2");
+     }
+
+}
+
+void interface1::on_pushButton_22_clicked()
+{
+ui->stackedWidget->setCurrentIndex(4);
+ui->pushButton_22->hide();
 }
