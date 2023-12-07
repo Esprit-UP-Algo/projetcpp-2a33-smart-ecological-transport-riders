@@ -126,6 +126,7 @@ QSqlQueryModel * client::rechercher(int nbe) {
 
       return model;
 }
+//afficher
 QSqlQueryModel * client::afficher(bool sortBydate)
 {
     QSqlQueryModel *model = new QSqlQueryModel();
