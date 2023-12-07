@@ -1710,6 +1710,7 @@ void interface1::on_MONTANT_2_selectionChanged()
 {
 
 }
+//taba3th l id lel arduino
 
 void interface1::on_tri_2_clicked()
 {
@@ -1732,6 +1733,7 @@ void interface1::on_tri_2_clicked()
       //   qDebug() << dataToSendd;
 }
 }
+//taba3th l montant lel arduino
 
 void interface1::on_tri_3_clicked()
 {

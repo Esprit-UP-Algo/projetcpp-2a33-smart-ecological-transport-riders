@@ -1,11 +1,13 @@
 QT       += core gui sql
 QT +=  charts
+
 TARGET =    YourPdfApp
 TEMPLATE = app
 QT   += core gui charts
 QT   += core gui charts
 QT       += core gui  serialport
 QT += network
+QT += widgets printsupport
 
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -29,12 +31,15 @@ SOURCES += \
     arduino.cpp \
     client.cpp \
     connexion.cpp \
+    contrat.cpp \
     employe.cpp \
     excel.cpp \
     main.cpp \
     interface1.cpp \
     mainwindow.cpp \
+    qcustomplot.cpp \
     smtp.cpp \
+    statistic.cpp \
     syle.cpp \
     voitures.cpp
 
@@ -43,17 +48,21 @@ HEADERS += \
     arduino.h \
     client.h \
     connexion.h \
+    contrat.h \
     employe.h \
     excel.h \
     interface1.h \
     mainwindow.h \
+    qcustomplot.h \
     smtp.h \
+    statistic.h \
     syle.h \
     voitures.h
 
 FORMS += \
     interface1.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    statistic.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

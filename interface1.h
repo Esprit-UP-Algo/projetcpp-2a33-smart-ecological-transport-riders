@@ -10,6 +10,7 @@
 #include <QWidget>
 #include "voitures.h"
 #include <QMainWindow>
+#include "statistic.h"
 
 #include <QDialog>
 
@@ -27,7 +28,7 @@ public:
     ~interface1();
 
 private slots:
-    void readDataFromArduino();
+   // void readDataFromArduino();
     void on_pushButton_clicked();
 
     void on_pb_supprimer_clicked();
@@ -37,12 +38,6 @@ private slots:
     void on_lineEdit_rechercher_textChanged(const QString &arg1);
 
     void on_comboBoxTri_currentIndexChanged(int index);
-
-
-
-
-
-
 
 
     void on_comboBox_currentIndexChanged(int index);
@@ -60,22 +55,14 @@ private slots:
     void on_pushButton_7_clicked();
 
     void on_pushButton_8_clicked();
-    void on_ajouter_clicked();
+   // void on_ajouter_clicked();
     void on_chercher_clicked();
-    void on_supprimser_clicked();
-    void on_modifier_clicked();
+    //void on_supprimser_clicked();
+   // void on_modifier_clicked();
     void on_pushButton_trianne_clicked();
-    void on_tritarifs_clicked();
+  //  void on_tritarifs_clicked();
     void on_stat_clicked();
     void on_pdf_sara_clicked();
-
-
-
-
-
-
-
-
 
 
     void on_pushButton_4_clicked();
@@ -113,8 +100,8 @@ private slots:
     void sendMail();
     //void readDataFromArduino();
 
-    void on_pushButton_arduino_clicked();
-    void onReadyRead();
+   // void on_pushButton_arduino_clicked();
+ //   void onReadyRead();
 
     void loop() ;
 
@@ -139,6 +126,35 @@ private slots:
 
     void on_pushButton_22_clicked();
 
+    void on_pushButton_23_clicked();
+    //integration
+
+    void on_ajouter_clicked();
+    void on_afficher_clicked();
+    void on_supprimer_clicked();
+    void on_modifier_clicked();
+    void on_affiche_tab_activated(const QModelIndex &index);
+
+    void on_tri_clicked();
+
+    void on_pdf_clicked();
+
+    void on_chercher_textChanged(const QString &arg1);
+
+    void on_stattt_clicked();
+
+    void on_historique_clicked();
+
+    void on_tableViewHistorique_activated(const QModelIndex &index);
+
+
+
+    void on_MONTANT_2_selectionChanged();
+
+    void on_tri_2_clicked();
+
+    void on_tri_3_clicked();
+
 signals:
     void signal_arduino(int code);
 
@@ -155,6 +171,7 @@ smtp *smtpClient;
   QTimer *timer;
   voitures etm;
 
+  Statistic * statistic;
 
 
 };
