@@ -13,14 +13,19 @@ Connection::Connection()
 
 bool Connection::createconnect()
 {bool test=false;
-QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
-db.setDatabaseName("projet2a");
-db.setUserName("sarahh");//inserer nom de l'utilisateur
-db.setPassword("sarah");//inserer mot de passe de cet utilisateur
+    QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
+    db.setDatabaseName("projet1");
+    db.setUserName("skander");//insereAr nom de l'utilisateur
+    db.setPassword("esprit18");//inserer mot de passe de cet utilisateur
 
-if (db.open())
-test=true;
-    return  test;
+    if (db.open())
+    test=true;
+
+
+
+
+
+        return  test;
 }
 
 

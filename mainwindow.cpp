@@ -4,6 +4,7 @@
 #include<QMessageBox>
 #include<QTimer>
 #include<QDialog>
+
 mainwindow::mainwindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::mainwindow)

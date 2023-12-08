@@ -12,7 +12,7 @@
 #include <QMainWindow>
 
 #include <QDialog>
-
+#include "reservation.h"
 namespace Ui {
 class interface1;
 }
@@ -139,6 +139,37 @@ private slots:
 
     void on_pushButton_22_clicked();
 
+    void on_pushButton_23_clicked();
+
+
+
+
+
+
+
+
+    void on_pb_ajouter_resr_clicked();
+
+    void on_pb_supprimer_2_clicked();
+
+    void on_pb_modifier_clicked();
+
+    void on_search_2_clicked();
+
+    void on_trier_clicked();
+
+    void on_stat_2_clicked();
+
+    void on_pdf_clicked();
+
+    void on_QRcode_clicked();
+
+    void on_calendarWidget_2_activated(const QDate &date);
+
+    void on_sendMail_clicked();
+    void readfile();
+        void on_tabWidget_currentChanged();
+    
 signals:
     void signal_arduino(int code);
 
@@ -147,7 +178,7 @@ private:
     Ui::interface1 *ui;
     employe E;
     QSqlQueryModel *model;
-smtp *smtpClient;
+//   smtp *smtpClient;
     client etmp;
     client foundClient;
   arduino myArduino;
@@ -155,7 +186,7 @@ smtp *smtpClient;
   QTimer *timer;
   voitures etm;
 
-
+  reservation C ;
 
 };
 #endif // INTERFACE1_H

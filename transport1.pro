@@ -6,8 +6,12 @@ QT   += core gui charts
 QT   += core gui charts
 QT       += core gui  serialport
 QT += network
+QT += printsupport
+QT       += multimedia
 
-
+TARGET = crudfinal
+TEMPLATE = app
+CONFIG += c++11
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Atelier_Arduino_v2
 TEMPLATE = app
@@ -34,6 +38,8 @@ SOURCES += \
     main.cpp \
     interface1.cpp \
     mainwindow.cpp \
+    qrcode.cpp \
+    reservation.cpp \
     smtp.cpp \
     syle.cpp \
     voitures.cpp
@@ -47,6 +53,8 @@ HEADERS += \
     excel.h \
     interface1.h \
     mainwindow.h \
+    qrcode.h \
+    reservation.h \
     smtp.h \
     syle.h \
     voitures.h

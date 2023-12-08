@@ -185,8 +185,9 @@ ui->pushButton_20->setStyleSheet(button1_style);
 ui->qrcode->setStyleSheet(button1_style);
 ui->groupBox_9->setStyleSheet(group_box_style);
 ui->affichertab->setStyleSheet(tab_style);
+ ui->tab_client->setStyleSheet(tab_style);
 ui->pushButton_22->setStyleSheet(button1_style);
-
+ui->tabWidget_4->setStyleSheet(tabWidget_style);
 }
 
 
